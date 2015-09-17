@@ -1,0 +1,13 @@
+build/
+/build.sh
+.coverage
+dist/
+doc/_build/
+.DS_Store
+*.egg*
+.env
+*.py[co]
+_release/
+_resources/
+*.sw*
+.tox/

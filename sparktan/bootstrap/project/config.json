@@ -1,0 +1,41 @@
+{
+    "Name": "my_test_cluster",
+    "ReleaseLabel": "emr-4.0.0",
+    "Instances": {"Ec2KeyName": "emr_jobs",
+                  "KeepJobFlowAliveWhenNoSteps": true,
+                  "TerminationProtected": false,
+                  "Ec2SubnetId": "subnet-ca9b41bd",
+                  "InstanceGroups": [
+                        {
+                            "Name": "Spark Master",
+                            "Market": "ON_DEMAND",
+                            "InstanceRole": "MASTER",
+                            "InstanceType": "m3.xlarge",
+                            "InstanceCount": 1
+                        },
+                        {
+                            "Name": "Spark Master + HDFS",
+                            "Market": "ON_DEMAND",
+                            "InstanceRole": "CORE",
+                            "InstanceType": "m3.xlarge",
+                            "InstanceCount": 2
+                        }
+                  ]
+        },
+    "JobFlowRole": "EMR_EC2_DefaultRole",
+    "ServiceRole": "EMR_DefaultRole",
+    "Applications": [
+        {"Name": "Hadoop"},
+        {"Name": "Spark"},
+        {"Name": "Pig"}
+    ],
+    "BootstrapActions": [
+        {
+            "Name": "Install Parse.ly Dependencies",
+            "ScriptBootstrapAction": {
+                "Path": "s3://parsely-pyspark/lib/bootstrap.sh"
+            }
+        }
+    ],
+    "KeyFile": "/Users/mlaprise/.ssh/emr_jobs.pem"
+}
