@@ -32,13 +32,24 @@ from sparktan import bootstrap
 log = logging.getLogger('spark_cluster')
 
 
-def run_spark_script(script, keyfile, host):
+def run_spark_script(script, keyfile, host, spark_config):
     job_uuid =  str(uuid.uuid4())
     def _run_spark_script():
         run('mkdir -p /home/hadoop/sparktan')
         run('mkdir /home/hadoop/sparktan/{}'.format(job_uuid))
         put(script, '/home/hadoop/sparktan/{}/main.py'.format(job_uuid))
-        run("/usr/lib/spark/bin/spark-submit --master yarn-client /home/hadoop/sparktan/{}/main.py".format(job_uuid))
+        command = ("/usr/lib/spark/bin/spark-submit  "
+                   "--master=yarn-client "
+                   "--num-executors=%(num_executors)s "
+                   "--executor-cores=%(executor_cores)s "
+                   "--executor-memory=%(executor_memory)s "
+                   "/home/hadoop/sparktan/%(job_uuid)s/main.py" %
+                   {'job_uuid': job_uuid,
+                    'num_executors': spark_config['num_executors'],
+                    'executor_cores': spark_config['executor_cores'],
+                    'executor_memory': spark_config['executor_memory']}
+                   )
+        run(command)
     return _run_spark_script
 
 
@@ -72,6 +83,7 @@ def main():
         project_path = '.'
     cluster_config = json.loads(open('{}/config.json'.format(project_path), 'r').read())
     env.key_filename = cluster_config.pop('KeyFile')
+    spark_config = cluster_config.pop('SparkConfig')
 
     # Start a cluster if neened
     if not args['--jobflow-id']:
@@ -101,7 +113,7 @@ def main():
     here = os.path.split(os.path.abspath(__file__))[0]
 
     script = "{}/{}".format(project_path, 'main.py')
-    output = execute(run_spark_script(script, env.key_filename, master_host), hosts=["hadoop@{}".format(master_host)])
+    output = execute(run_spark_script(script, env.key_filename, master_host, spark_config), hosts=["hadoop@{}".format(master_host)])
     for line in output:
         log.info(line)
 

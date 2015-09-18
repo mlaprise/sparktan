@@ -37,5 +37,8 @@
             }
         }
     ],
-    "KeyFile": "/Users/mlaprise/.ssh/emr_jobs.pem"
+    "KeyFile": "/Users/mlaprise/.ssh/emr_jobs.pem",
+    "SparkConfig": {"num_executors": "8",
+                    "executor_cores": "8",
+                    "executor_memory": "4g"}
 }
