@@ -31,9 +31,9 @@
     ],
     "BootstrapActions": [
         {
-            "Name": "Install Parse.ly Dependencies",
+            "Name": "Setup Python/Conda env.",
             "ScriptBootstrapAction": {
-                "Path": "s3://parsely-pyspark/lib/bootstrap.sh"
+                "Path": "s3://parsely-pyspark/lib/bootstrap_base.sh"
             }
         }
     ],

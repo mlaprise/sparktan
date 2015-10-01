@@ -4,6 +4,7 @@ Usage:
     sparktan run [<project>] [options]
     sparktan quickstart <project> [options]
     sparktan terminate <jobflow_id>
+    sparktan update-venv <jobflow_id>
 
 Options:
     --cluster-name=<cn>          Cluster Name
@@ -19,11 +20,12 @@ import json
 import logging
 import time
 import uuid
+import subprocess
 
 import boto3
 import fabric.api as fab
 
-from fabric.api import run, env, put
+from fabric.api import run, env, put, local
 from fabric.tasks import execute
 from docopt import docopt
 from sparktan import bootstrap
@@ -54,6 +56,13 @@ def run_spark_script(script, keyfile, host, spark_config):
     return _run_spark_script
 
 
+def update_venv(here, jobflow_id):
+    log.info('Updating virtual environment...')
+    fabfile_path = os.path.split(here)[0] + '/envs'
+    fab_command = 'fab cluster:{} create_venv --fabfile={}/fabfile.py'.format(jobflow_id, fabfile_path)
+    local(fab_command)
+
+
 def main():
     args = docopt(__doc__)
     # Logging
@@ -65,8 +74,13 @@ def main():
     root_logger.addHandler(handler)
     root_logger.setLevel(logging.INFO)
 
+    here = os.path.split(os.path.abspath(__file__))[0]
+
     if args['quickstart']:
         bootstrap.quickstart(args['<project>'])
+
+    if args['update-venv']:
+        update_venv(here, args['<jobflow_id>'])
 
     client = boto3.client('emr')
 
@@ -108,10 +122,12 @@ def main():
     waiter.wait(ClusterId=jobflow_id)
     log.info('Cluster {} is now running'.format(jobflow_id))
 
+    # Create the venv
+    update_venv(jobflow_id)
+
     # Run the script on the cluster
     cluster_info = client.describe_cluster(ClusterId=jobflow_id)
     master_host = cluster_info['Cluster']['MasterPublicDnsName']
-    here = os.path.split(os.path.abspath(__file__))[0]
 
     script = "{}/{}".format(project_path, 'main.py')
     output = execute(run_spark_script(script, env.key_filename, master_host, spark_config), hosts=["hadoop@{}".format(master_host)])
