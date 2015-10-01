@@ -34,20 +34,21 @@ from sparktan import bootstrap
 log = logging.getLogger('spark_cluster')
 
 
-def run_spark_script(script, keyfile, host, spark_config):
+def run_spark_script(script, keyfile, host, spark_config, venv_name):
     job_uuid =  str(uuid.uuid4())
     def _run_spark_script():
         run('mkdir -p /home/hadoop/sparktan')
         run('mkdir /home/hadoop/sparktan/{}'.format(job_uuid))
         put(script, '/home/hadoop/sparktan/{}/main.py'.format(job_uuid))
-        command = ("PYSPARK_PYTHON=/home/hadoop/miniconda/envs/sparktan/bin/python "
+        command = ("PYSPARK_PYTHON=/home/hadoop/miniconda/envs/%(venv_name)/bin/python "
                    "/usr/lib/spark/bin/spark-submit  "
                    "--master=yarn-client "
                    "--num-executors=%(num_executors)s "
                    "--executor-cores=%(executor_cores)s "
                    "--executor-memory=%(executor_memory)s "
                    "/home/hadoop/sparktan/%(job_uuid)s/main.py" %
-                   {'job_uuid': job_uuid,
+                   {'venv_name': venv_name,
+                    'job_uuid': job_uuid,
                     'num_executors': spark_config['num_executors'],
                     'executor_cores': spark_config['executor_cores'],
                     'executor_memory': spark_config['executor_memory']}
@@ -56,10 +57,10 @@ def run_spark_script(script, keyfile, host, spark_config):
     return _run_spark_script
 
 
-def update_venv(here, jobflow_id):
+def update_venv(here, jobflow_id, venv_name):
     log.info('Updating virtual environment...')
     fabfile_path = os.path.split(here)[0] + '/envs'
-    fab_command = 'fab cluster:{} create_venv --fabfile={}/fabfile.py'.format(jobflow_id, fabfile_path)
+    fab_command = 'fab cluster:{} create_venv:{} --fabfile={}/fabfile.py'.format(jobflow_id, venv_name, fabfile_path)
     local(fab_command)
 
 
@@ -76,11 +77,20 @@ def main():
 
     here = os.path.split(os.path.abspath(__file__))[0]
 
+    if args['<project>']:
+        project_path = args['<project>']
+    else:
+        project_path = '.'
+
     if args['quickstart']:
         bootstrap.quickstart(args['<project>'])
 
+    cluster_config = json.loads(open('{}/config.json'.format(project_path), 'r').read())
+    env.key_filename = cluster_config.pop('KeyFile')
+    spark_config = cluster_config.pop('SparkConfig')
+
     if args['update-venv']:
-        update_venv(here, args['<jobflow_id>'])
+        update_venv(here, cluster_config['Name'], args['<jobflow_id>'])
 
     client = boto3.client('emr')
 
@@ -91,14 +101,6 @@ def main():
 
     if not args['run']:
         return
-
-    if args['<project>']:
-        project_path = args['<project>']
-    else:
-        project_path = '.'
-    cluster_config = json.loads(open('{}/config.json'.format(project_path), 'r').read())
-    env.key_filename = cluster_config.pop('KeyFile')
-    spark_config = cluster_config.pop('SparkConfig')
 
     # Start a cluster if neened
     if not args['--jobflow-id']:
@@ -123,14 +125,14 @@ def main():
     log.info('Cluster {} is now running'.format(jobflow_id))
 
     # Create the venv
-    update_venv(jobflow_id)
+    update_venv(here, cluster_config['Name'], args['<jobflow_id>'])
 
     # Run the script on the cluster
     cluster_info = client.describe_cluster(ClusterId=jobflow_id)
     master_host = cluster_info['Cluster']['MasterPublicDnsName']
 
     script = "{}/{}".format(project_path, 'main.py')
-    output = execute(run_spark_script(script, env.key_filename, master_host, spark_config), hosts=["hadoop@{}".format(master_host)])
+    output = execute(run_spark_script(script, env.key_filename, master_host, spark_config, cluster_info['Name']), hosts=["hadoop@{}".format(master_host)])
     for line in output:
         log.info(line)
 

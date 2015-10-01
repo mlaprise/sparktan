@@ -15,7 +15,6 @@ env.output_prefix = False
 env.key_filename = "/Users/mlaprise/.ssh/emr_jobs.pem"
 env.user = 'hadoop'
 env.disable_known_hosts = True
-env.venv_name = 'sparktan'
 
 output['stdout'] = True
 output['stderr'] = True
@@ -99,7 +98,8 @@ def cluster(cluster_id):
 
 @task
 @parallel
-def create_venv():
+def create_venv(venv_name):
+    env.venv_name = venv_name
     venv_path = os.path.join(venv_root_path, env.venv_name)
     tmpdir = fab.run('mktemp -d')
     here = os.getcwd()

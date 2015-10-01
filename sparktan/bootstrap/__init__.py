@@ -57,13 +57,13 @@ def _touch(filename):
         pass
 
 
-def _generate(template_filename, dest):
+def _generate(template_filename, dest, project_name):
     dest = '{}/{}'.format(_path_prefix, dest) if _path_prefix != '' \
            else dest
     print('    {:<18} {}'.format(green('create'), dest))
     template = _env.get_template(template_filename)
     with open(dest, 'w') as fp:
-        fp.write(template.render())
+        fp.write(template.render(project_name=project_name))
 
 
 def quickstart(project_name):
@@ -83,7 +83,7 @@ def quickstart(project_name):
         _cp(_here('project', 'gitignore'), '.gitignore')
         _cp(_here('project', 'conda_requirements.txt'), 'conda_requirements.txt')
         _cp(_here('project', 'pip_requirements.txt'), 'pip_requirements.txt')
-        _generate('config.jinja2.json', 'config.json')
+        _generate('config.jinja2.json', 'config.json', project_name)
         _touch('README.md')
         _cp(_here('project','main.py'), 'main.py')
 

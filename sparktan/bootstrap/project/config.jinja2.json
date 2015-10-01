@@ -1,5 +1,5 @@
 {
-    "Name": "my_test_cluster",
+    "Name": "{{ project_name }}",
     "ReleaseLabel": "emr-4.0.0",
     "Instances": {"Ec2KeyName": "emr_jobs",
                   "KeepJobFlowAliveWhenNoSteps": true,
@@ -37,7 +37,7 @@
             }
         }
     ],
-    "KeyFile": "/Users/mlaprise/.ssh/emr_jobs.pem",
+    "KeyFile": "~/.ssh/emr_jobs.pem",
     "SparkConfig": {"num_executors": "8",
                     "executor_cores": "8",
                     "executor_memory": "4g"}
