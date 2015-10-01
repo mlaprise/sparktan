@@ -56,7 +56,7 @@ def update_virtualenv(repo_name,
     if exists(virtualenv_path) is False:
         puts("Virtualenv not found - creating one for %s" % repo_name)
         with settings(warn_only=True):
-            run("conda create --name sparktan python=2.7 pip --yes")
+            run("conda create --name {} python=2.7 pip --yes".format(env.venv_name))
 
     puts("Updating the virtualenv")
     here = os.getcwd()
@@ -97,9 +97,13 @@ def cluster(cluster_id):
 
 
 @task
-@parallel
-def create_venv(venv_name):
+def venv(venv_name):
     env.venv_name = venv_name
+
+
+@task
+@parallel
+def create_venv():
     venv_path = os.path.join(venv_root_path, env.venv_name)
     tmpdir = fab.run('mktemp -d')
     here = os.getcwd()

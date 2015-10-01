@@ -40,7 +40,7 @@ def run_spark_script(script, keyfile, host, spark_config, venv_name):
         run('mkdir -p /home/hadoop/sparktan')
         run('mkdir /home/hadoop/sparktan/{}'.format(job_uuid))
         put(script, '/home/hadoop/sparktan/{}/main.py'.format(job_uuid))
-        command = ("PYSPARK_PYTHON=/home/hadoop/miniconda/envs/%(venv_name)/bin/python "
+        command = ("PYSPARK_PYTHON=/home/hadoop/miniconda/envs/%(venv_name)s/bin/python "
                    "/usr/lib/spark/bin/spark-submit  "
                    "--master=yarn-client "
                    "--num-executors=%(num_executors)s "
@@ -60,7 +60,7 @@ def run_spark_script(script, keyfile, host, spark_config, venv_name):
 def update_venv(here, jobflow_id, venv_name):
     log.info('Updating virtual environment...')
     fabfile_path = os.path.split(here)[0] + '/envs'
-    fab_command = 'fab cluster:{} create_venv:{} --fabfile={}/fabfile.py'.format(jobflow_id, venv_name, fabfile_path)
+    fab_command = 'fab cluster:{} venv:{} create_venv --fabfile={}/fabfile.py'.format(jobflow_id, venv_name, fabfile_path)
     local(fab_command)
 
 
@@ -90,7 +90,7 @@ def main():
     spark_config = cluster_config.pop('SparkConfig')
 
     if args['update-venv']:
-        update_venv(here, cluster_config['Name'], args['<jobflow_id>'])
+        update_venv(here, args['<jobflow_id>'], cluster_config['Name'])
 
     client = boto3.client('emr')
 
@@ -125,14 +125,14 @@ def main():
     log.info('Cluster {} is now running'.format(jobflow_id))
 
     # Create the venv
-    update_venv(here, cluster_config['Name'], args['<jobflow_id>'])
+    update_venv(here, jobflow_id, cluster_config['Name'])
 
     # Run the script on the cluster
     cluster_info = client.describe_cluster(ClusterId=jobflow_id)
     master_host = cluster_info['Cluster']['MasterPublicDnsName']
 
     script = "{}/{}".format(project_path, 'main.py')
-    output = execute(run_spark_script(script, env.key_filename, master_host, spark_config, cluster_info['Name']), hosts=["hadoop@{}".format(master_host)])
+    output = execute(run_spark_script(script, env.key_filename, master_host, spark_config, cluster_config['Name']), hosts=["hadoop@{}".format(master_host)])
     for line in output:
         log.info(line)
 
