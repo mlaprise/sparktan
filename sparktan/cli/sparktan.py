@@ -115,6 +115,10 @@ def main():
             log.info('Created new jobflow: {}'.format(jobflow_id))
         else:
             log.info('Cluster creation failed: {}'.format(emr_response))
+
+        # Create the venv for the first time
+        update_venv(here, jobflow_id, cluster_config['Name'])
+
     else:
         jobflow_id = args['--jobflow-id']
 
@@ -124,8 +128,6 @@ def main():
     waiter.wait(ClusterId=jobflow_id)
     log.info('Cluster {} is now running'.format(jobflow_id))
 
-    # Create the venv
-    update_venv(here, jobflow_id, cluster_config['Name'])
 
     # Run the script on the cluster
     cluster_info = client.describe_cluster(ClusterId=jobflow_id)
@@ -142,5 +144,5 @@ def main():
         log.info('Terminating Cluster...')
         log.info(response)
     else:
-        log.info('Cluster {} is still running: use sparktan terminate to terminate it'.format(jobflow_id))
+        log.info('''Cluster {} is still running: use "sparktan terminate" to terminate it'''.format(jobflow_id))
 
