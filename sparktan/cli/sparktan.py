@@ -116,18 +116,17 @@ def main():
         else:
             log.info('Cluster creation failed: {}'.format(emr_response))
 
+        # Make sure the cluster is ready
+        log.info('Bootstrapping the cluster')
+        waiter = client.get_waiter('cluster_running')
+        waiter.wait(ClusterId=jobflow_id)
+        log.info('Cluster {} is now running'.format(jobflow_id))
+
         # Create the venv for the first time
         update_venv(here, jobflow_id, cluster_config['Name'])
 
     else:
         jobflow_id = args['--jobflow-id']
-
-    # Make sure the cluster is ready
-    log.info('Bootstrapping the cluster')
-    waiter = client.get_waiter('cluster_running')
-    waiter.wait(ClusterId=jobflow_id)
-    log.info('Cluster {} is now running'.format(jobflow_id))
-
 
     # Run the script on the cluster
     cluster_info = client.describe_cluster(ClusterId=jobflow_id)
