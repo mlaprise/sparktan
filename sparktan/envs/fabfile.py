@@ -71,9 +71,10 @@ def update_virtualenv(repo_name,
         build_path + '/', mode=0o775)
     git_ssh = os.path.join(build_path, 'git_ssh.sh')
 
+    virtualenv = os.path.split(virtualenv_path)[-1]
     # Run the conda update
     with settings(show('warnings', 'running', 'stdout', 'stderr')):
-        run('conda install --file %s --yes' % os.path.join(build_path, conda_requirements_file))
+        run('CONDA_DEFAULT_ENV="%s" CONDA_ENV_PATH="%s" conda install --file %s --yes' % (virtualenv, virtualenv_path, os.path.join(build_path, conda_requirements_file)))
 
     # Run the pip update
     pip = os.path.join(virtualenv_path, 'bin/pip')
