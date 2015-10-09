@@ -5,6 +5,7 @@ Usage:
     sparktan quickstart <project> [options]
     sparktan terminate <jobflow_id>
     sparktan update-venv <jobflow_id>
+    sparktan list
 
 Options:
     --cluster-name=<cn>          Cluster Name
@@ -20,6 +21,7 @@ import json
 import logging
 import time
 import uuid
+import pprint
 import subprocess
 
 import boto3
@@ -46,12 +48,14 @@ def run_spark_script(script, keyfile, host, spark_config, venv_name):
                    "--num-executors=%(num_executors)s "
                    "--executor-cores=%(executor_cores)s "
                    "--executor-memory=%(executor_memory)s "
-                   "/home/hadoop/sparktan/%(job_uuid)s/main.py" %
+                   "/home/hadoop/sparktan/%(job_uuid)s/main.py "
+                   "%(script_args)s" %
                    {'venv_name': venv_name,
                     'job_uuid': job_uuid,
                     'num_executors': spark_config['num_executors'],
                     'executor_cores': spark_config['executor_cores'],
-                    'executor_memory': spark_config['executor_memory']}
+                    'executor_memory': spark_config['executor_memory'],
+                    'script_args': 'arstechnica.com --daily-export --start=2015-10-01T00 --end=2015-10-01T23 --force'}
                    )
         run(command)
     return _run_spark_script
@@ -62,6 +66,11 @@ def update_venv(here, jobflow_id, venv_name):
     fabfile_path = os.path.split(here)[0] + '/envs'
     fab_command = 'fab cluster:{} venv:{} create_venv --fabfile={}/fabfile.py'.format(jobflow_id, venv_name, fabfile_path)
     local(fab_command)
+
+
+def list_existing_cluster(client, project_name):
+    res = client.list_clusters(ClusterStates=['STARTING','BOOTSTRAPPING','RUNNING','WAITING',])
+    return [cluster for cluster in res['Clusters'] if cluster['Name'] == project_name]
 
 
 def main():
@@ -98,6 +107,12 @@ def main():
         response = client.terminate_job_flows(JobFlowIds=[args['<jobflow_id>']])
         log.info('Terminating Cluster...')
         log.info(response)
+
+    if args['list']:
+        # list the existing cluster with this project name
+        clusters = list_existing_cluster(client, cluster_config['Name'])
+        for cluster_data in clusters:
+            pprint.pprint(cluster_data)
 
     if not args['run']:
         return
