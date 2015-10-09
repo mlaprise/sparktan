@@ -48,14 +48,12 @@ def run_spark_script(script, keyfile, host, spark_config, venv_name):
                    "--num-executors=%(num_executors)s "
                    "--executor-cores=%(executor_cores)s "
                    "--executor-memory=%(executor_memory)s "
-                   "/home/hadoop/sparktan/%(job_uuid)s/main.py "
-                   "%(script_args)s" %
+                   "/home/hadoop/sparktan/%(job_uuid)s/main.py" %
                    {'venv_name': venv_name,
                     'job_uuid': job_uuid,
                     'num_executors': spark_config['num_executors'],
                     'executor_cores': spark_config['executor_cores'],
-                    'executor_memory': spark_config['executor_memory'],
-                    'script_args': 'arstechnica.com --daily-export --start=2015-10-01T00 --end=2015-10-01T23 --force'}
+                    'executor_memory': spark_config['executor_memory'] }
                    )
         run(command)
     return _run_spark_script
@@ -70,7 +68,13 @@ def update_venv(here, jobflow_id, venv_name):
 
 def list_existing_cluster(client, project_name):
     res = client.list_clusters(ClusterStates=['STARTING','BOOTSTRAPPING','RUNNING','WAITING',])
-    return [cluster for cluster in res['Clusters'] if cluster['Name'] == project_name]
+    project_clusters = [cluster for cluster in res['Clusters'] if cluster['Name'] == project_name]
+    # Fetch the master
+    more_info = client.describe_job_flows(JobFlowIds=[c['Id'] for c in project_clusters])
+    host_per_cluster = {c['JobFlowId']:c['Instances']['MasterPublicDnsName'] for c in more_info['JobFlows']}
+    for cluster in project_clusters:
+        cluster['MasterPublicDnsName'] = host_per_cluster[cluster['Id']]
+    return project_clusters
 
 
 def main():
