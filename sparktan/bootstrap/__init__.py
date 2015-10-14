@@ -81,8 +81,7 @@ def quickstart(project_name):
     _mkdir(project_name)
     with _cd(project_name):
         _cp(_here('project', 'gitignore'), '.gitignore')
-        _cp(_here('project', 'conda_requirements.txt'), 'conda_requirements.txt')
-        _cp(_here('project', 'pip_requirements.txt'), 'pip_requirements.txt')
+        _cp(_here('project', 'pip_requirements.txt'), 'requirements.txt')
         _generate('config.jinja2.json', 'config.json', project_name)
         _touch('README.md')
         _cp(_here('project','main.py'), 'main.py')

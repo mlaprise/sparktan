@@ -20,8 +20,7 @@ output['stdout'] = True
 output['stderr'] = True
 
 venv_root_path = '/home/hadoop/virtualenvs'
-conda_requirements_path = 'conda_requirements.txt'
-pip_requirements_path = 'pip_requirements.txt'
+pip_requirements_path = 'requirements.txt'
 
 
 def run_in_virtualenv(command, venv):
@@ -45,7 +44,6 @@ def get_nodes(cluster_id):
 def update_virtualenv(repo_name,
                       virtualenv_path,
                       build_path,
-                      conda_requirements_file='conda_requirements.txt',
                       pip_requirements_file='pip_requirements.txt'):
     """Update the virtualenv using a requirements file.
     :param repo_name:         Name of the repo being updated. Used to contruct path to project.
@@ -110,11 +108,9 @@ def create_venv():
     try:
         # Create and/or update venv on node.
         with fab.lcd(here):
-            fab.put(conda_requirements_path, tmpdir)
             fab.put(pip_requirements_path, tmpdir)
-        conda_req_filename = os.path.basename(conda_requirements_path)
         pip_req_filename = os.path.basename(pip_requirements_path)
-        update_virtualenv(env.venv_name, venv_path, tmpdir, conda_req_filename, pip_req_filename)
+        update_virtualenv(env.venv_name, venv_path, tmpdir, pip_req_filename)
 
     finally:
         fab.run('rm -rf %s' % tmpdir)
