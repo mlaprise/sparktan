@@ -42,7 +42,7 @@ def run_spark_script(script, keyfile, host, spark_config, venv_name):
         run('mkdir -p /home/hadoop/sparktan')
         run('mkdir /home/hadoop/sparktan/{}'.format(job_uuid))
         put(script, '/home/hadoop/sparktan/{}/main.py'.format(job_uuid))
-        command = ("PYSPARK_PYTHON=/home/hadoop/miniconda/envs/%(venv_name)s/bin/python "
+        command = ("PYSPARK_PYTHON=/home/hadoop/virtualenvs/%(venv_name)s/bin/python "
                    "/usr/lib/spark/bin/spark-submit  "
                    "--master=yarn-client "
                    "--num-executors=%(num_executors)s "

@@ -19,7 +19,7 @@ env.disable_known_hosts = True
 output['stdout'] = True
 output['stderr'] = True
 
-venv_root_path = '/home/hadoop/miniconda/envs'
+venv_root_path = '/home/hadoop/virtualenvs'
 conda_requirements_path = 'conda_requirements.txt'
 pip_requirements_path = 'pip_requirements.txt'
 
@@ -53,10 +53,11 @@ def update_virtualenv(repo_name,
     :param build_path:        Path to the root of the build
     :param requirements_file: Name of requirements file(s) to use, may be a string or a list.
     """
+
     if exists(virtualenv_path) is False:
         puts("Virtualenv not found - creating one for %s" % repo_name)
         with settings(warn_only=True):
-            run("conda create --name {} python=2.7 pip --yes".format(env.venv_name))
+            run("WORKON_HOME=%s source /usr/local/bin/virtualenvwrapper.sh && mkvirtualenv %s" % (venv_root_path, virtualenv_path))
 
     puts("Updating the virtualenv")
     here = os.getcwd()
@@ -72,9 +73,6 @@ def update_virtualenv(repo_name,
     git_ssh = os.path.join(build_path, 'git_ssh.sh')
 
     virtualenv = os.path.split(virtualenv_path)[-1]
-    # Run the conda update
-    with settings(show('warnings', 'running', 'stdout', 'stderr')):
-        run('CONDA_DEFAULT_ENV="%s" CONDA_ENV_PATH="%s" conda install --file %s --yes' % (virtualenv, virtualenv_path, os.path.join(build_path, conda_requirements_file)))
 
     # Run the pip update
     pip = os.path.join(virtualenv_path, 'bin/pip')

@@ -8,4 +8,4 @@
 #
 # To run: GIT_SSH=<this script> pip install -r requirements.txt
 
-ssh -o StrictHostKeyChecking=no -i `dirname $0`/parselyutils_deployment_key.pem $1 $2
+ssh -o StrictHostKeyChecking=no -i `dirname $0`/emr_jobs.pem $1 $2
