@@ -1,7 +1,7 @@
 #
 # Install some basic dev tools we might need.
 #
-#@sudo yum update -y
+sudo yum update -y
 sudo yum install make automake gcc gcc-c++ kernel-devel git-core -y
 sudo yum install htop -y
 
