@@ -1,16 +1,13 @@
 """Run your script on a Spark EMR cluster.
 
 Usage:
-    sparktan run [<project>] [options]
-    sparktan quickstart <project> [options]
+    sparktan run [<jobflow_id>]
+    sparktan quickstart <project>
     sparktan terminate <jobflow_id>
     sparktan update-venv <jobflow_id>
     sparktan list
 
 Options:
-    --cluster-name=<cn>          Cluster Name
-    --jobflow-id=<jf>            Update an existing jobflow
-    --terminate-cluster          Kill the cluster after running the script [default: True]
     -h --help                    Show this help screen
 """
 from __future__ import absolute_import
@@ -48,12 +45,14 @@ def run_spark_script(script, keyfile, host, spark_config, venv_name):
                    "--num-executors=%(num_executors)s "
                    "--executor-cores=%(executor_cores)s "
                    "--executor-memory=%(executor_memory)s "
-                   "/home/hadoop/sparktan/%(job_uuid)s/main.py" %
+                   "/home/hadoop/sparktan/%(job_uuid)s/main.py "
+                   "%(script_args)s" %
                    {'venv_name': venv_name,
                     'job_uuid': job_uuid,
                     'num_executors': spark_config['num_executors'],
                     'executor_cores': spark_config['executor_cores'],
-                    'executor_memory': spark_config['executor_memory'] }
+                    'executor_memory': spark_config['executor_memory'],
+                    'script_args': ''}
                    )
         run(command)
     return _run_spark_script
@@ -72,8 +71,13 @@ def list_existing_cluster(client, project_name):
     # Fetch the master
     more_info = client.describe_job_flows(JobFlowIds=[c['Id'] for c in project_clusters])
     host_per_cluster = {c['JobFlowId']:c['Instances']['MasterPublicDnsName'] for c in more_info['JobFlows']}
+
     for cluster in project_clusters:
         cluster['MasterPublicDnsName'] = host_per_cluster[cluster['Id']]
+        # Fetch the master private ip
+        instances_info = client.list_instances(ClusterId=cluster['Id'])
+        private_ips = {inst['PublicDnsName']:inst['PrivateIpAddress'] for inst in instances_info['Instances']}
+        cluster['MasterPrivateIpAddress'] = private_ips[cluster['MasterPublicDnsName']]
     return project_clusters
 
 
@@ -90,15 +94,10 @@ def main():
 
     here = os.path.split(os.path.abspath(__file__))[0]
 
-    if args['<project>']:
-        project_path = args['<project>']
-    else:
-        project_path = '.'
-
     if args['quickstart']:
         bootstrap.quickstart(args['<project>'])
 
-    cluster_config = json.loads(open('{}/config.json'.format(project_path), 'r').read())
+    cluster_config = json.loads(open('./config.json', 'r').read())
     env.key_filename = cluster_config.pop('KeyFile')
     spark_config = cluster_config.pop('SparkConfig')
 
@@ -122,11 +121,7 @@ def main():
         return
 
     # Start a cluster if neened
-    if not args['--jobflow-id']:
-        # Override the cluster name
-        if args['--cluster-name']:
-            cluster_config['Name'] =  args['--cluster-name']
-
+    if not args['<jobflow-id>']:
         emr_response = client.run_job_flow(**cluster_config),
 
         if emr_response[0]['ResponseMetadata']['HTTPStatusCode'] == 200:
@@ -145,22 +140,16 @@ def main():
         update_venv(here, jobflow_id, cluster_config['Name'])
 
     else:
-        jobflow_id = args['--jobflow-id']
+        jobflow_id = args['<jobflow-id>']
 
     # Run the script on the cluster
     cluster_info = client.describe_cluster(ClusterId=jobflow_id)
     master_host = cluster_info['Cluster']['MasterPublicDnsName']
 
-    script = "{}/{}".format(project_path, 'main.py')
+    script = "./{}".format('main.py')
     output = execute(run_spark_script(script, env.key_filename, master_host, spark_config, cluster_config['Name']), hosts=["hadoop@{}".format(master_host)])
     for line in output:
         log.info(line)
 
-    # Kill the cluster
-    if args['--terminate-cluster']:
-        response = client.terminate_job_flows(JobFlowIds=[jobflow_id])
-        log.info('Terminating Cluster...')
-        log.info(response)
-    else:
-        log.info('''Cluster {} is still running: use "sparktan terminate" to terminate it'''.format(jobflow_id))
+    log.info('''Cluster {} is still running: use "sparktan terminate YOUR_CLUSTER_ID" to terminate it'''.format(jobflow_id))
 
