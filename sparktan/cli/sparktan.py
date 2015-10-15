@@ -1,14 +1,15 @@
 """Run your script on a Spark EMR cluster.
 
 Usage:
-    sparktan run [<jobflow_id>]
+    sparktan run [<jobflow_id>] [options]
     sparktan quickstart <project>
     sparktan terminate <jobflow_id>
     sparktan update-venv <jobflow_id>
     sparktan list
 
 Options:
-    -h --help                    Show this help screen
+    --job-args=<ja>         The args to pass to the main job
+    -h --help               Show this help screen
 """
 from __future__ import absolute_import
 
@@ -33,7 +34,7 @@ from sparktan import bootstrap
 log = logging.getLogger('spark_cluster')
 
 
-def run_spark_script(script, keyfile, host, spark_config, venv_name):
+def run_spark_script(script, keyfile, host, spark_config, venv_name, job_args):
     job_uuid =  str(uuid.uuid4())
     def _run_spark_script():
         run('mkdir -p /home/hadoop/sparktan')
@@ -52,7 +53,7 @@ def run_spark_script(script, keyfile, host, spark_config, venv_name):
                     'num_executors': spark_config['num_executors'],
                     'executor_cores': spark_config['executor_cores'],
                     'executor_memory': spark_config['executor_memory'],
-                    'script_args': ''}
+                    'script_args': job_args}
                    )
         run(command)
     return _run_spark_script
@@ -147,7 +148,12 @@ def main():
     master_host = cluster_info['Cluster']['MasterPublicDnsName']
 
     script = "./{}".format('main.py')
-    output = execute(run_spark_script(script, env.key_filename, master_host, spark_config, cluster_config['Name']), hosts=["hadoop@{}".format(master_host)])
+    output = execute(run_spark_script(script,
+                                      env.key_filename,
+                                      master_host,
+                                      spark_config,
+                                      cluster_config['Name'],
+                                      args['--job-args']), hosts=["hadoop@{}".format(master_host)])
     for line in output:
         log.info(line)
 
