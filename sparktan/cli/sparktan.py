@@ -122,7 +122,7 @@ def main():
         return
 
     # Start a cluster if neened
-    if not args['<jobflow-id>']:
+    if not args['<jobflow_id>']:
         emr_response = client.run_job_flow(**cluster_config),
 
         if emr_response[0]['ResponseMetadata']['HTTPStatusCode'] == 200:
@@ -141,7 +141,7 @@ def main():
         update_venv(here, jobflow_id, cluster_config['Name'])
 
     else:
-        jobflow_id = args['<jobflow-id>']
+        jobflow_id = args['<jobflow_id>']
 
     # Run the script on the cluster
     cluster_info = client.describe_cluster(ClusterId=jobflow_id)
