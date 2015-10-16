@@ -55,7 +55,7 @@ def update_virtualenv(repo_name,
     if exists(virtualenv_path) is False:
         puts("Virtualenv not found - creating one for %s" % repo_name)
         with settings(warn_only=True):
-            run("WORKON_HOME=%s source /usr/local/bin/virtualenvwrapper.sh && mkvirtualenv %s" % (venv_root_path, virtualenv_path))
+            run("VIRTUALENVWRAPPER_PYTHON=/usr/bin/python2.7 WORKON_HOME=%s source /usr/local/bin/virtualenvwrapper.sh && mkvirtualenv %s --python=/usr/bin/python2.7" % (venv_root_path, virtualenv_path))
 
     puts("Updating the virtualenv")
     here = os.getcwd()
