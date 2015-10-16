@@ -97,6 +97,7 @@ def main():
 
     if args['quickstart']:
         bootstrap.quickstart(args['<project>'])
+        return
 
     cluster_config = json.loads(open('./config.json', 'r').read())
     env.key_filename = cluster_config.pop('KeyFile')
