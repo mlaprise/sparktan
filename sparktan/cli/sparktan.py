@@ -53,7 +53,7 @@ def run_spark_script(script, keyfile, host, spark_config, venv_name, job_args):
                     'num_executors': spark_config['num_executors'],
                     'executor_cores': spark_config['executor_cores'],
                     'executor_memory': spark_config['executor_memory'],
-                    'script_args': job_args}
+                    'script_args': job_args or ''}
                    )
         run(command)
     return _run_spark_script
