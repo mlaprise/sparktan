@@ -15,10 +15,11 @@
                         },
                         {
                             "Name": "Spark Master + HDFS",
-                            "Market": "ON_DEMAND",
+                            "Market": "SPOT",
                             "InstanceRole": "CORE",
-                            "InstanceType": "m3.xlarge",
-                            "InstanceCount": 2
+                            "InstanceType": "r3.xlarge",
+                            "InstanceCount": 2,
+                            "BidPrice": "0.1"
                         }
                   ]
         },
@@ -38,7 +39,7 @@
         }
     ],
     "KeyFile": "~/.ssh/emr_jobs.pem",
-    "SparkConfig": {"num_executors": "8",
-                    "executor_cores": "8",
-                    "executor_memory": "4g"}
+    "SparkConfig": {"num_executors": "2",
+                    "executor_cores": "4",
+                    "executor_memory": "28g"}
 }
