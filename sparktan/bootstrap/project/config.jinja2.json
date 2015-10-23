@@ -41,5 +41,5 @@
     "KeyFile": "~/.ssh/emr_jobs.pem",
     "SparkConfig": {"num_executors": "2",
                     "executor_cores": "4",
-                    "executor_memory": "28g"}
+                    "executor_memory": "18g"}
 }
