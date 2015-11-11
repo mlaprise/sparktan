@@ -60,10 +60,10 @@ def run_spark_script(script, keyfile, host, spark_config, venv_name, job_args):
     return _run_spark_script
 
 
-def update_venv(here, jobflow_id, venv_name):
+def update_venv(here, jobflow_id, venv_name, key_filename):
     log.info('Updating virtual environment...')
     fabfile_path = os.path.split(here)[0] + '/envs'
-    fab_command = 'fab cluster:{} venv:{} create_venv --fabfile={}/fabfile.py'.format(jobflow_id, venv_name, fabfile_path)
+    fab_command = 'fab cluster:{} venv:{} key:{} create_venv --fabfile={}/fabfile.py'.format(jobflow_id, venv_name, key_filename, fabfile_path)
     local(fab_command)
 
 
@@ -105,7 +105,7 @@ def main():
     spark_config = cluster_config.pop('SparkConfig')
 
     if args['update-venv']:
-        update_venv(here, args['<jobflow_id>'], cluster_config['Name'])
+        update_venv(here, args['<jobflow_id>'], cluster_config['Name'], cluster_config['KeyFile'])
 
     client = boto3.client('emr')
 

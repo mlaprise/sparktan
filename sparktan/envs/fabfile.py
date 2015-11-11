@@ -12,7 +12,6 @@ from fabric.api import (cd, env, lcd, local, parallel, put, puts, run,
 
 env.forward_agent = True
 env.output_prefix = False
-env.key_filename = "/Users/mlaprise/.ssh/emr_jobs.pem"
 env.user = 'hadoop'
 env.disable_known_hosts = True
 
@@ -96,6 +95,11 @@ def cluster(cluster_id):
 @task
 def venv(venv_name):
     env.venv_name = venv_name
+
+
+@task
+def key(key_filename):
+    env.key_filename = key_filename
 
 
 @task
