@@ -9,6 +9,7 @@ Usage:
 
 Options:
     --job-args=<ja>         The args to pass to the main job
+    --terminate-cluster     Kill the cluster after running the script
     -h --help               Show this help screen
 """
 from __future__ import absolute_import
@@ -158,5 +159,10 @@ def main():
     for line in output:
         log.info(line)
 
-    log.info('''Cluster {} is still running: use "sparktan terminate YOUR_CLUSTER_ID" to terminate it'''.format(jobflow_id))
+    if args['--terminate-cluster']:
+        response = client.terminate_job_flows(JobFlowIds=[jobflow_id])
+        log.info('Terminating Cluster...')
+        log.info(response)
+    else:
+        log.info('''Cluster {} is still running: use "sparktan terminate YOUR_CLUSTER_ID" to terminate it'''.format(jobflow_id))
 
