@@ -69,7 +69,7 @@ def update_venv(here, jobflow_id, venv_name, key_filename):
 
 def list_existing_cluster(client, project_name):
     res = client.list_clusters(ClusterStates=['STARTING','BOOTSTRAPPING','RUNNING','WAITING',])
-    project_clusters = [cluster for cluster in res['Clusters'] if cluster['Name'] == project_name]
+    project_clusters = [cluster for cluster in res['Clusters'] if cluster['Name'].startswith("sparktan|{}".format(project_name))]
     # Fetch the master
     more_info = client.describe_job_flows(JobFlowIds=[c['Id'] for c in project_clusters])
     host_per_cluster = {c['JobFlowId']:c['Instances']['MasterPublicDnsName'] for c in more_info['JobFlows']}
@@ -125,6 +125,7 @@ def main():
 
     # Start a cluster if neened
     if not args['<jobflow_id>']:
+        cluster_config['Name'] = 'sparktan|{} - {}'.format(cluster_config['Name'], args['--job-args'])
         emr_response = client.run_job_flow(**cluster_config),
 
         if emr_response[0]['ResponseMetadata']['HTTPStatusCode'] == 200:
