@@ -141,6 +141,7 @@ def main():
 
         # Create the venv for the first time
         update_venv(here, jobflow_id, cluster_config['Name'])
+        update_venv(here, jobflow_id, cluster_config['Name'], cluster_config['KeyFile'])
 
     else:
         jobflow_id = args['<jobflow_id>']
