@@ -105,7 +105,7 @@ def main():
     spark_config = cluster_config.pop('SparkConfig')
 
     if args['update-venv']:
-        update_venv(here, args['<jobflow_id>'], cluster_config['Name'], cluster_config['KeyFile'])
+        update_venv(here, args['<jobflow_id>'], cluster_config['Name'], env.key_filename)
 
     client = boto3.client('emr')
 
@@ -140,8 +140,7 @@ def main():
         log.info('Cluster {} is now running'.format(jobflow_id))
 
         # Create the venv for the first time
-        update_venv(here, jobflow_id, cluster_config['Name'])
-        update_venv(here, jobflow_id, cluster_config['Name'], cluster_config['KeyFile'])
+        update_venv(here, jobflow_id, cluster_config['Name'], env.key_filename)
 
     else:
         jobflow_id = args['<jobflow_id>']
