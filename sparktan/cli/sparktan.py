@@ -103,9 +103,10 @@ def main():
     cluster_config = json.loads(open('./config.json', 'r').read())
     env.key_filename = cluster_config.pop('KeyFile')
     spark_config = cluster_config.pop('SparkConfig')
+    job_base_name = cluster_config['Name']
 
     if args['update-venv']:
-        update_venv(here, args['<jobflow_id>'], cluster_config['Name'], env.key_filename)
+        update_venv(here, args['<jobflow_id>'], job_base_name, env.key_filename)
 
     client = boto3.client('emr')
 
@@ -116,7 +117,7 @@ def main():
 
     if args['list']:
         # list the existing cluster with this project name
-        clusters = list_existing_cluster(client, cluster_config['Name'])
+        clusters = list_existing_cluster(client, job_base_name)
         for cluster_data in clusters:
             pprint.pprint(cluster_data)
 
@@ -125,7 +126,7 @@ def main():
 
     # Start a cluster if neened
     if not args['<jobflow_id>']:
-        cluster_config['Name'] = 'sparktan|{} - {}'.format(cluster_config['Name'], args['--job-args'])
+        cluster_config['Name'] = 'sparktan|{} - {}'.format(job_base_name, args['--job-args'])
         emr_response = client.run_job_flow(**cluster_config),
 
         if emr_response[0]['ResponseMetadata']['HTTPStatusCode'] == 200:
@@ -141,7 +142,7 @@ def main():
         log.info('Cluster {} is now running'.format(jobflow_id))
 
         # Create the venv for the first time
-        update_venv(here, jobflow_id, cluster_config['Name'], env.key_filename)
+        update_venv(here, jobflow_id, job_base_name, env.key_filename)
 
     else:
         jobflow_id = args['<jobflow_id>']
@@ -155,7 +156,7 @@ def main():
                                       env.key_filename,
                                       master_host,
                                       spark_config,
-                                      cluster_config['Name'],
+                                      job_base_name,
                                       args['--job-args']), hosts=["hadoop@{}".format(master_host)])
     for line in output:
         log.info(line)
