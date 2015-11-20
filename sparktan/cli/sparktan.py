@@ -63,7 +63,7 @@ def run_spark_script(script, keyfile, host, spark_config, venv_name, job_args):
 def update_venv(here, jobflow_id, venv_name, key_filename):
     log.info('Updating virtual environment...')
     fabfile_path = os.path.split(here)[0] + '/envs'
-    fab_command = 'fab cluster:{} venv:{} key:{} create_venv --fabfile={}/fabfile.py --show=debug'.format(jobflow_id, venv_name, key_filename, fabfile_path)
+    fab_command = 'fab cluster:{} venv:{} key:{} create_venv --fabfile={}/fabfile.py'.format(jobflow_id, venv_name, key_filename, fabfile_path)
     local(fab_command)
 
 
