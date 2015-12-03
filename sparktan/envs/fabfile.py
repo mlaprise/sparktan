@@ -81,6 +81,10 @@ def update_virtualenv(repo_name,
                                                  pip,
                                                  " ".join(pip_options),
                                                  os.path.join(build_path, pip_requirements_file)))
+        run('GIT_SSH=%s %s install %s %s' % (git_ssh,
+                                             pip,
+                                             " ".join(pip_options),
+                                             os.path.join(build_path, "*.whl")))
 
     sudo('chmod -R g+ws %s' % virtualenv_path)
 
@@ -113,6 +117,8 @@ def create_venv():
         # Create and/or update venv on node.
         with fab.lcd(here):
             fab.put(pip_requirements_path, tmpdir)
+            fab.put('wheels/*.whl', tmpdir)
+
         pip_req_filename = os.path.basename(pip_requirements_path)
         update_virtualenv(env.venv_name, venv_path, tmpdir, pip_req_filename)
 
