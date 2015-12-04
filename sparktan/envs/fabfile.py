@@ -43,15 +43,22 @@ def get_nodes(cluster_id):
 def update_virtualenv(repo_name,
                       virtualenv_path,
                       build_path,
-                      pip_requirements_file='pip_requirements.txt',
-                      wheels_packages=[]):
+                      pip_requirements_file='pip_requirements.txt'):
     """Update the virtualenv using a requirements file.
     :param repo_name:         Name of the repo being updated. Used to contruct path to project.
     :param virtualenv_path:   Path to the root of the remote virutalenv
     :param build_path:        Path to the root of the build
     :param requirements_file: Name of requirements file(s) to use, may be a string or a list.
     """
+    # Pushing local wheels package if necessary
+    if os.path.exists('wheels/'):
+        wheels_packages = [filename for filename in os.listdir('wheels/') if filename.endswith('.whl')]
+        if len(wheels_packages) > 0:
+            fab.put('wheels/*.whl', build_path)
+    else:
+        wheels_packages = []
 
+    # Make sure the venv exists
     if exists(virtualenv_path) is False:
         puts("Virtualenv not found - creating one for %s" % repo_name)
         with settings(warn_only=True):
@@ -60,7 +67,7 @@ def update_virtualenv(repo_name,
     puts("Updating the virtualenv")
     here = os.getcwd()
 
-    # copythe deployment key and script to the remote machine
+    # Copy the deployment key and script to the remote machine
     package_path = os.path.split(os.path.abspath(__file__))[0]
     deployment_key = env.key_filename
     sudo("rm -f %s" % os.path.join(build_path, deployment_key))
@@ -120,14 +127,7 @@ def create_venv():
         # Create and/or update venv on node.
         with fab.lcd(here):
             fab.put(pip_requirements_path, tmpdir)
-            if os.path.exists('wheel/'):
-                wheels_packages = [filename for filename in os.listdir('wheels/') if filename.endswith('.whl')]
-                if len(wheels_packages) > 0:
-                    fab.put('wheels/*.whl', tmpdir)
-            else:
-                wheels_packages = []
         pip_req_filename = os.path.basename(pip_requirements_path)
-        update_virtualenv(env.venv_name, venv_path, tmpdir, pip_req_filename, wheels_packages)
-
+        update_virtualenv(env.venv_name, venv_path, tmpdir, pip_req_filename)
     finally:
         fab.run('rm -rf %s' % tmpdir)
