@@ -41,6 +41,14 @@ def run_spark_script(script, keyfile, host, spark_config, venv_name, job_args):
         run('mkdir -p /home/hadoop/sparktan')
         run('mkdir /home/hadoop/sparktan/{}'.format(job_uuid))
         put(script, '/home/hadoop/sparktan/{}/main.py'.format(job_uuid))
+
+        # Pushing libs
+        lib_files = None
+        if os.path.exists('libs/'):
+            lib_files = [filename for filename in os.listdir('libs/') if filename.endswith('.zip')]
+            if len(lib_files) > 0:
+                fab.put('libs/*.zip', '/home/hadoop/sparktan/{}'.format(job_uuid))
+
         command = ("PYSPARK_PYTHON=/home/hadoop/virtualenvs/%(venv_name)s/bin/python "
                    "/usr/lib/spark/bin/spark-submit  "
                    "--master=yarn-client "
@@ -56,6 +64,10 @@ def run_spark_script(script, keyfile, host, spark_config, venv_name, job_args):
                     'executor_memory': spark_config['executor_memory'],
                     'script_args': job_args or ''}
                    )
+
+        if lib_files:
+            command += " --py-files={libs_path}/{libs}".format(libs_path='/home/hadoop/sparktan/{}'.format(job_uuid),
+                                                               libs=",".join(lib_files))
         run(command)
     return _run_spark_script
 
