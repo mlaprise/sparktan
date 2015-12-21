@@ -49,15 +49,22 @@ def run_spark_script(script, keyfile, host, spark_config, venv_name, job_args):
             if len(lib_files) > 0:
                 fab.put('libs/*.zip', '/home/hadoop/sparktan/{}'.format(job_uuid))
 
+        if lib_files:
+            py_files = "--py-files={libs_path}/{libs} ".format(libs_path='/home/hadoop/sparktan/{}'.format(job_uuid),
+                                                               libs=",".join(lib_files))
+        else:
+            py_files = ""
+
         command = ("PYSPARK_PYTHON=/home/hadoop/virtualenvs/%(venv_name)s/bin/python "
-                   "/usr/lib/spark/bin/spark-submit  "
+                   "/usr/lib/spark/bin/spark-submit %(py_files)s"
                    "--master=yarn-client "
                    "--num-executors=%(num_executors)s "
                    "--executor-cores=%(executor_cores)s "
                    "--executor-memory=%(executor_memory)s "
                    "/home/hadoop/sparktan/%(job_uuid)s/main.py "
                    "%(script_args)s" %
-                   {'venv_name': venv_name,
+                   {'py_files': py_files,
+                    'venv_name': venv_name,
                     'job_uuid': job_uuid,
                     'num_executors': spark_config['num_executors'],
                     'executor_cores': spark_config['executor_cores'],
@@ -65,9 +72,6 @@ def run_spark_script(script, keyfile, host, spark_config, venv_name, job_args):
                     'script_args': job_args or ''}
                    )
 
-        if lib_files:
-            command += " --py-files={libs_path}/{libs}".format(libs_path='/home/hadoop/sparktan/{}'.format(job_uuid),
-                                                               libs=",".join(lib_files))
         run(command)
     return _run_spark_script
 
