@@ -4,7 +4,7 @@
     "Instances": {"Ec2KeyName": "emr_jobs",
                   "KeepJobFlowAliveWhenNoSteps": true,
                   "TerminationProtected": false,
-                  "Ec2SubnetId": "subnet-ca9b41bd",
+                  "Ec2SubnetId": "YOUT_SUBNET_ID",
                   "InstanceGroups": [
                         {
                             "Name": "Spark Master",
@@ -32,13 +32,13 @@
     ],
     "BootstrapActions": [
         {
-            "Name": "Setup Python/Conda env.",
+            "Name": "Setup Python env.",
             "ScriptBootstrapAction": {
-                "Path": "s3://parsely-pyspark/lib/bootstrap_base.sh"
+                "Path": "s3://PATH_TO_YOUR_BOOTSTRAP_SCRIPT/bootstrap_base.sh"
             }
         }
     ],
-    "KeyFile": "~/.ssh/emr_jobs.pem",
+    "KeyFile": "~/.ssh/emr_key.pem",
     "SparkConfig": {"num_executors": "2",
                     "executor_cores": "4",
                     "executor_memory": "18g"}
