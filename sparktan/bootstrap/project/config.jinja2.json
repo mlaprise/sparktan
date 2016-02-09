@@ -1,7 +1,7 @@
 {
     "Name": "{{ project_name }}",
-    "ReleaseLabel": "emr-4.0.0",
-    "Instances": {"Ec2KeyName": "emr_jobs",
+    "ReleaseLabel": "emr-4.2.0",
+    "Instances": {"Ec2KeyName": "YOUR_KEY_NAME",
                   "KeepJobFlowAliveWhenNoSteps": true,
                   "TerminationProtected": false,
                   "Ec2SubnetId": "YOUT_SUBNET_ID",
@@ -34,11 +34,11 @@
         {
             "Name": "Setup Python env.",
             "ScriptBootstrapAction": {
-                "Path": "s3://PATH_TO_YOUR_BOOTSTRAP_SCRIPT/bootstrap_base.sh"
+                "Path": "s3://sparktan/bootstrap_base.sh"
             }
         }
     ],
-    "KeyFile": "~/.ssh/emr_key.pem",
+    "KeyFile": "/PATH_TO/YOUR_AWS_KEY.pem",
     "SparkConfig": {"num_executors": "2",
                     "executor_cores": "4",
                     "executor_memory": "18g"}
