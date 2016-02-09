@@ -51,5 +51,21 @@ wheels/ | [optional] Your local wheels package
 	> sparktan terminate j-27KUKY8IY12Y0
 
 
-#### Build wheels package from your private github repos:
+#### Dependencies
+
+Public Python package dependencies should be placed into the requirements.txt file. Sparktan will create a dedicated virtualenv on each node with the proper packages installed. 
+
+Altough it's possible to install python packages from private Github repo, I recommend pushing those packages to the node using wheels files.
+
+You can build wheels package from your private github repos using:
+
     > python setup.py sdist bdist_wheel
+
+and place those wheels files directly in the "wheels" folder of you Sparktan project.     
+
+    
+#### Credentials
+In other to create your cluster, you need the proper AWS credentials:
+
+* A AWS user with enough permissions. Fox example: AmazonElasticMapReduceFullAccess, AmazonElasticMapReduceRole, AmazonS3FullAccess, etc
+* Your aws_access_key_id, aws_secret_access_key and region in ~/.aws/config (boto3) 
